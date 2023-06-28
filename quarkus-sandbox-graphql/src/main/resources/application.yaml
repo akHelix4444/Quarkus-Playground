@@ -1,0 +1,17 @@
+quarkus:
+  debug:
+    print-startup-times: true
+
+  log:
+    level: INFO
+    console:
+      level: INFO
+      format: "%d{HH:mm:ss} %-5p [%c{2.}] %s%e%n"
+    metrics:
+      enabled: true
+
+  smallrye-graphql:
+    events:
+      enabled: true
+    metrics:
+      enabled: true

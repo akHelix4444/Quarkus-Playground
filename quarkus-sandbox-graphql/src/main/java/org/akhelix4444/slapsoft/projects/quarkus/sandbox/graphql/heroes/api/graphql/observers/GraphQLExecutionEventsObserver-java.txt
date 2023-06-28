@@ -1,0 +1,59 @@
+package org.akhelix4444.slapsoft.projects.quarkus.sandbox.graphql.heroes.api.graphql.observers;
+
+import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.Map;
+
+import javax.enterprise.event.Observes;
+import javax.inject.Singleton;
+
+import io.smallrye.graphql.api.Context;
+import io.smallrye.graphql.cdi.event.AfterDataFetch;
+import io.smallrye.graphql.cdi.event.AfterExecute;
+import io.smallrye.graphql.cdi.event.BeforeDataFetch;
+import io.smallrye.graphql.cdi.event.BeforeExecute;
+import io.smallrye.graphql.execution.event.InvokeInfo;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Singleton
+public class GraphQLExecutionEventsObserver {
+
+    private final Map<Context, Long> startTimes = Collections.synchronizedMap(new IdentityHashMap<>());
+
+    public void beforeExecute(@Observes @BeforeExecute Context context) {
+        var executionId = context.getExecutionId();
+        var operation = context.getOperationName().orElse("UNKNOWN");
+        log.info(executionId + " - Start execute request: " + operation);
+    }
+
+    public void beforeDataFetch(@Observes @BeforeDataFetch Context context) {
+        // Before each result for each data fetches
+        startTimes.put(context, System.nanoTime());
+        log.info("== startTimes map size - " + startTimes.size() + " ==");
+    }
+
+    public void beforeInvoke(@Observes InvokeInfo invokeInfo) throws Exception {
+        var methodName = invokeInfo.getOperationMethod().getName();
+        log.info("Execute method: " + methodName);
+    }
+
+    public void afterDataFetch(@Observes @AfterDataFetch Context context) {
+        var executionId = context.getExecutionId();
+        var dataFetchField = context.getFieldName();
+        log.info(executionId + " - Complete fetch data: " + dataFetchField);
+
+        var startTime = startTimes.remove(context);
+        if (null != startTime) {
+            var duration = System.nanoTime() - startTime;
+            log.info("Operation execution time: " + duration);
+        }
+    }
+
+    public void afterExecute(@Observes @AfterExecute Context context) {
+        var executionId = context.getExecutionId();
+        var operation = context.getOperationName().orElse("UNKNOWN");
+        log.info(executionId + " - Complete execute request: " + operation);
+    }
+
+}
