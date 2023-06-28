@@ -67,6 +67,10 @@ public class CustomGraphQLEventingService
     @Override
     public void beforeDataFetch(Context context) {
         // Before each result for each data fetches
+        var executionId = context.getExecutionId();
+        var dataFetchField = context.getFieldName();
+        log.info(executionId + " - Start fetch data: " + dataFetchField);
+
         startTimes.put(context, System.nanoTime());
         log.info("== startTimes map size - " + startTimes.size() + " ==");
     }
